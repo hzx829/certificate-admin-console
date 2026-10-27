@@ -5,7 +5,7 @@
 
 先定义 A1–A7 验收方案，再实施，以验收结果为标准。使用真实数据库和真实 HTTP 并发检查。
 用户已授权本次由 AI 运行自动化验收，并通过 Chrome / computer-use 完成界面实测。
-从用户确认重新计时的时刻起限时三小时；到时停止实现，如实记录剩余风险。
+本次计时按用户指定为 2026-10-27 16:57–19:57（Asia/Shanghai）；到时停止实现，如实记录剩余风险。
 保留全部 AI 会话及工具动作，随工作提交 git，不伪造错误、结果或验收证据。
 
 Section 6 is candidate-only. Do not draft, outline, translate, edit, proofread,
