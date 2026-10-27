@@ -22,6 +22,8 @@ Linux/macOS 或已将 Python 配置到 PATH 的环境可使用 `python3 run.py`�
 .\run.ps1 start -Database data/demo-fresh.db
 ```
 
+当前本机目录另备有初始数据 `data/ready-demo.db`，可用 `.\run.ps1 -Database data/ready-demo.db` 启动。原演示数据保留了 UI 实测操作；临时验证目录因清理命令被自动安全检查拦截而保留，均已被 gitignore 排除，不进入提交和 Git bundle。
+
 ## 身份与默认数据
 
 无需登录，在页面右上角选择 actor。API 使用 `X-Actor-Token`：
