@@ -9,5 +9,9 @@ artifacts/*.csv
 artifacts/*.db*
 artifacts/server*.log
 artifacts/tmp/
+artifacts/startup-clean/
+artifacts/*.bundle
+artifacts/submission.json
+artifacts/export-finalizer.log
 *.tmp
 .env

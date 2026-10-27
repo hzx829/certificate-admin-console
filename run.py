@@ -47,7 +47,7 @@ def prepare(build=True):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", nargs="?", choices=["start", "verify", "prepare", "seed-large"], default="start")
-    parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--database", type=Path)
     args = parser.parse_args()
     python = prepare(build=args.command != "seed-large")

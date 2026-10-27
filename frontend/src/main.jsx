@@ -164,7 +164,7 @@ function Console({actor}) {
         <span>Page {page} of {totalPages}</span><button className="secondary small" disabled={page<=1 || list.phase!=='ready'} onClick={()=>setPage(n=>n-1)}>Previous</button><button className="secondary small" disabled={page>=totalPages || list.phase!=='ready'} onClick={()=>setPage(n=>n+1)}>Next</button></div>
     </section>
     <aside className="panel issue-panel"><p className="eyebrow">Course completions</p><h2>Issue certificates</h2><p className="muted">Issue to every completed learner who has not already received a certificate.</p>
-      <label>Course<select value={course} disabled={bulk.phase==='loading' || !!pending.current} onChange={e=>setCourse(e.target.value)}>
+      <label>Course<select value={course} disabled={bulk.phase==='loading' || !!pending.current} onChange={e=>{setCourse(e.target.value);setBulk({phase:'idle'});}}>
         {courses.map(c=><option key={c.id} value={c.id}>{c.title} · {c.completed}/{c.enrolled} completed</option>)}
       </select></label>
       {courseError && <p role="alert" className="notice error">{courseError} <button onClick={()=>setRefresh(n=>n+1)}>Retry courses</button></p>}
