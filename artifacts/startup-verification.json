@@ -1,0 +1,7 @@
+{
+  "clean_clone_startup": true,
+  "command": "./run.ps1 start -Port 8768",
+  "static_assets_ok": 2,
+  "fresh_east_certificates": 4,
+  "restart_preserved_revocation": true
+}

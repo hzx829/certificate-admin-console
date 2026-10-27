@@ -126,7 +126,7 @@ if __name__ == "__main__":
         sha = git("rev-parse", "HEAD")
         bundle = ROOT / "artifacts" / "certificate-admin-console.bundle"
         git("bundle", "create", str(bundle), "--all")
-        submission = {"final_commit":sha,"bundle":str(bundle),"bundle_sha256":hashlib.sha256(bundle.read_bytes()).hexdigest(),
+        submission = {"finalized":True,"final_commit":sha,"bundle":str(bundle),"bundle_sha256":hashlib.sha256(bundle.read_bytes()).hexdigest(),
                       "evidence_through":records[-1]["timestamp"],"working_tree":git("status", "--porcelain")}
         (ROOT / "artifacts" / "submission.json").write_text(json.dumps(submission,indent=2),encoding="utf-8")
         print(json.dumps(submission),flush=True)

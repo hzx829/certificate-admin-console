@@ -13,5 +13,6 @@ artifacts/startup-clean/
 artifacts/*.bundle
 artifacts/submission.json
 artifacts/export-finalizer.log
+artifacts/export-finalizer-error.log
 *.tmp
 .env

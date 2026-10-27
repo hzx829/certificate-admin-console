@@ -1,0 +1,79 @@
+{
+  "started_at": "2026-10-27T09:39:59.462912+00:00",
+  "finished_at": "2026-10-27T09:40:24.577600+00:00",
+  "passed": true,
+  "cases": [
+    {
+      "case": "test_A1_tenant_isolation (__main__.Acceptance.test_A1_tenant_isolation)",
+      "passed": true,
+      "seconds": 1.704720800044015
+    },
+    {
+      "case": "test_A2_concurrent_replay (__main__.Acceptance.test_A2_concurrent_replay)",
+      "passed": true,
+      "seconds": 1.991566700162366
+    },
+    {
+      "case": "test_A2_different_keys_same_course (__main__.Acceptance.test_A2_different_keys_same_course)",
+      "passed": true,
+      "seconds": 2.0448618000373244
+    },
+    {
+      "case": "test_A2_sequential_replay_and_restart (__main__.Acceptance.test_A2_sequential_replay_and_restart)",
+      "passed": true,
+      "seconds": 2.845804699929431
+    },
+    {
+      "case": "test_A3_concurrent_key_misuse (__main__.Acceptance.test_A3_concurrent_key_misuse)",
+      "passed": true,
+      "seconds": 1.6234598001465201
+    },
+    {
+      "case": "test_A3_key_misuse (__main__.Acceptance.test_A3_key_misuse)",
+      "passed": true,
+      "seconds": 1.5210852001328021
+    },
+    {
+      "case": "test_A4_outcomes_and_single_learner_rollback (__main__.Acceptance.test_A4_outcomes_and_single_learner_rollback)",
+      "passed": true,
+      "seconds": 1.4862829002086073
+    },
+    {
+      "case": "test_A4_whole_operation_rollback (__main__.Acceptance.test_A4_whole_operation_rollback)",
+      "passed": true,
+      "seconds": 1.484679400222376
+    },
+    {
+      "case": "test_A5_dates_sorting_and_query_parity (__main__.Acceptance.test_A5_dates_sorting_and_query_parity)",
+      "passed": true,
+      "seconds": 1.5178704999852926
+    },
+    {
+      "case": "test_A6_large_export (__main__.Acceptance.test_A6_large_export)",
+      "passed": true,
+      "seconds": 5.2594162998721
+    },
+    {
+      "case": "test_A7_audit_failure_rolls_back_status (__main__.Acceptance.test_A7_audit_failure_rolls_back_status)",
+      "passed": true,
+      "seconds": 1.5180217998567969
+    },
+    {
+      "case": "test_A7_revoke_retry_and_concurrency (__main__.Acceptance.test_A7_revoke_retry_and_concurrency)",
+      "passed": true,
+      "seconds": 2.115415700012818
+    }
+  ],
+  "metrics": {
+    "A6": {
+      "east_rows": 100000,
+      "matching_rows": 33299,
+      "generation_seconds": 1.056372500024736,
+      "first_export_seconds": 0.23839409998618066,
+      "second_export_seconds": 0.12476509995758533,
+      "full_export_seconds": 0.5292305999901146,
+      "concurrent_list_seconds": 0.05077980016358197,
+      "overlap_seconds": 0.05084409983828664
+    }
+  }
+}

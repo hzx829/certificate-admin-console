@@ -1,0 +1,28 @@
+{
+  "exported_at": "2026-10-27T09:44:18.652769+00:00",
+  "native_source_name": "rollout-2026-10-27T14-36-11-01a17c12-d4f6-7402-80e1-cc2e3463834f.jsonl",
+  "session_id": "01a17c12-d4f6-7402-80e1-cc2e3463834f",
+  "record_count": 685,
+  "exported_through": "2026-10-27T09:44:18.546Z",
+  "source_prefix_sha256": "46ac9e01b14cf1aaf0f326992b0c12b612261763e26dad210f42ab3f687846c8",
+  "export_sha256": "08c74dc7908377dfd903f7405a08f97d909c5d5e1fe4f0ad9da23c3161100545",
+  "record_types": {
+    "session_meta": 6,
+    "event_msg": 315,
+    "response_item": 279,
+    "world_state": 2,
+    "turn_context": 5,
+    "token_usage_record": 78
+  },
+  "redactions": {
+    "private account identifier": 12,
+    "platform instructions": 20,
+    "internal platform metadata": 279,
+    "internal platform state": 2,
+    "internal context summary": 5,
+    "hidden reasoning payload": 101,
+    "hidden reasoning": 238,
+    "image binary; original tool action and text retained": 32
+  },
+  "format": "Native chronological JSONL, with explicitly declared redactions; no reconstructed or selected messages."
+}

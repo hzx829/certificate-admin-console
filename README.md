@@ -1,7 +1,112 @@
 # Certificate Admin Console
 
-Implementation starts from this new repository. The acceptance contract is
-[docs/ACCEPTANCE.md](docs/ACCEPTANCE.md) and is committed before application code.
-Startup and verification commands will be documented as they are implemented.
+多租户培训平台的结业证书后台。React + FastAPI + SQLite；支持 actor 切换、证书搜索／分页／排序、批量发证、详情与审计、撤销和 CSV 导出。
 
-Section 6 must be completed by the candidate without AI assistance.
+[A1–A7 验收方案](docs/ACCEPTANCE.md) 在应用代码之前提交。真实 HTTP／数据库验收的 **12 个用例全部通过**，并完成 Chrome 界面实测；详见 [自动化结果](artifacts/acceptance-results.json)、[Chrome 记录](artifacts/ui-verification.md) 和 [干净环境启动检查](artifacts/startup-verification.json)。
+
+## 启动
+
+需要 Python 3.12+、Node.js 22.12+ 或 24+，首次安装依赖需要网络。在仓库目录执行一个命令：
+
+```powershell
+.\run.ps1
+```
+
+打开 **http://127.0.0.1:8765**。脚本查找可用 Python，创建 `.venv`，按锁文件安装依赖，构建前端，初始化演示数据库并启动完整应用。重复启动保留已有证书、撤销和操作记录。端口冲突时使用 `.\run.ps1 -Port 8769`；Ctrl+C 停止服务。
+
+Linux/macOS 或已将 Python 配置到 PATH 的环境可使用 `python3 run.py`（Windows 也可用 `python run.py`）。Windows 启动已实测，其他操作系统未进行实机验证。
+
+默认数据在 `data/demo.db`，不纳入 git。需要全新数据时，显式指定一个新的文件，而不要删除或覆盖已有数据：
+
+```powershell
+.\run.ps1 start -Database data/demo-fresh.db
+```
+
+## 身份与默认数据
+
+无需登录，在页面右上角选择 actor。API 使用 `X-Actor-Token`：
+
+| 管理员 | token | 租户及时区 | 课程 |
+| --- | --- | --- | --- |
+| alice@east.test | alice-east | East，Australia/Sydney | 101 Safety 101，102 First Aid |
+| bob@west.test | bob-west | West，Australia/Perth | 201 Safety 101 |
+
+双方都有独立的 Alex Lee 和 Safety 101。每个 Safety 101 中有已完成未获证、未完成、已有证书的学员。默认 East 证书 ID 为 1、3、4、5，West 为 2；1 和 2 使用题目指定 UTC 时间，3 用于冬季检查，4、5 用于日期边界和同日排序。
+
+API 文档：**http://127.0.0.1:8765/docs**。`GET /api/actors` 公开演示身份选项；其他业务接口验证 actor 并从管理员记录取得租户，不使用调用方传入的租户决定权限。这是题目限定的身份模拟，不能作为生产认证。
+
+一次批量请求示例：
+
+```powershell
+$headers = @{ 'X-Actor-Token' = 'alice-east'; 'Idempotency-Key' = 'demo-bulk-1' }
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8765/api/bulk-issue `
+  -Headers $headers -ContentType application/json -Body '{"course_id":101}'
+```
+
+重试时保留同一 key 和请求体。真正的新操作使用新 key；同一 key 换成另一门有权访问的课程返回 409。未知请求字段返回 422。
+
+## 自动化验收和逐项复现
+
+第二个命令执行构建与验收：
+
+```powershell
+.\run.ps1 verify
+```
+
+跨平台入口：`python3 run.py verify`。验收启动独立服务器，使用临时数据库和真实并发 HTTP 请求；不会修改默认演示数据。结果写入 `artifacts/acceptance-results.json`。首轮曾因测试资源没有正确关闭而失败，[原始失败报告](artifacts/acceptance-first-run.json) 与修复提交均保留。
+
+以下从全新小数据集开始；修改数据的场景应单独使用新数据库，或直接运行隔离的自动化验收。
+
+| 场景 | 复现与通过标准 | 自动化用例 |
+| --- | --- | --- |
+| A1 隔离 | Bob 查询 East 编号 E-DEMO-001、导出该编号：空结果；GET `/api/certificates/1`、POST `/api/bulk-issue` 指定 101、POST `/api/certificates/1/revoke`：404，无证书、审计或操作写入。双方 Alex 的结果只属于各自租户。 | test_A1_tenant_isolation |
+| A2 重试 | 同一 key 对 101 顺序及并发调用，所有结果相同；只新增 2 张证书和 2 条发证审计、1 条操作。重启后重放仍相同。不同 key 并发操作同一课程，也不能重复发证。 | 三个 test_A2 用例 |
+| A3 key 冲突 | Alice 先以 K 对 101 发证，再以 K 对 102 请求：409，原结果不变、102 无写入；原请求仍可重放。并发不同课程也只能执行一种。 | 两个 test_A3 用例 |
+| A4 结果 | East 101 首次发证：Alex、Morgan issued；Jamie skipped/not_completed；Casey skipped/already_certified。验收脚本注入单个审计写入失败，确认该学员没有半成品；注入最终结果写入失败，确认整个批次回滚。 | 两个 test_A4 用例 |
+| A5 时区 | 详情 1 显示 2026-01-11 00:30；Bob 查看详情 2 显示 2026-01-10 21:30。3 显示冬季 2026-07-10 23:30。日期升序 ID 为 4、1、5、3，降序为 3、1、5、4；分页和 CSV 一致。 | test_A5_dates_sorting_and_query_parity |
+| A6 导出 | 按下节生成大数据，搜索 Alex、按 Learner 升序，连续导出两次；各有 33,299 条相同且有序的记录，首次下载期间列表可用。完整十万条导出也必须在 60 秒内完成。 | test_A6_large_export |
+| A7 撤销 | 页面查看有效证书，先取消撤销，确认未变化；再确认撤销，状态变为 REVOKED，恰好增加一条撤销审计。重复或并发请求不新增事件，首次撤销时间不变。审计失败时状态回滚。 | 两个 test_A7 用例 |
+
+单独运行某个用例，例如：
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest tests.acceptance.Acceptance.test_A2_concurrent_replay -v
+```
+
+完整断言、故障注入方法和数据约定见 [验收方案](docs/ACCEPTANCE.md) 与 [验收脚本](tests/acceptance.py)。
+
+## 十万条数据
+
+显式创建独立的新数据库，默认小数据集保持不变：
+
+```powershell
+.\run.ps1 seed-large -Database data/large.db
+.\run.ps1 start -Database data/large.db -Port 8767
+```
+
+打开 http://127.0.0.1:8767。East 证书总量恰好为 100,000，West 保留一张证书。生成器拒绝默认 `data/demo.db` 和任何已存在的目标文件；需要再生成时使用另一个新文件名。它制造同名、同课程和同日期的数据，也包含逗号、引号、换行字段以检查 CSV 编码。
+
+导出接口示例：`GET /api/certificates/export?q=Alex&sort=learner_name&direction=asc`，携带 Alice header。导出采用一次有序查询、读快照和分批流式编码；排序最后追加唯一 ID。分页参数不会限制导出范围。
+
+本次 Windows 本机测量：33,299 行的两次导出约 0.247 秒、0.131 秒；100,000 行完整导出约 0.556 秒；并发列表请求约 0.054 秒，在首次导出结束前完成。数值及时间重叠记录保存在自动化报告中，其他机器需要重新测量。
+
+## 关键实现选择
+
+- 幂等操作结果持久化，不依赖进程内缓存。操作、证书和审计在同一外层事务内提交；逐学员 savepoint 允许可恢复的局部失败。
+- SQLite 启用 WAL、外键和唯一约束。写事务使用 BEGIN IMMEDIATE，锁等待最多 15 秒；故障返回可重试错误，前端保留原 key。
+- 同一租户／课程／学员一生最多一张证书，撤销后不重发；没有重发、删除或编辑证书功能。
+- UTC 时间保留，按租户 IANA 时区转换；本地日历日期在发证时计算保存用于排序，租户时区在本题中固定。
+- 列表和导出共用筛选与排序规则；搜索匹配姓名或编号，英文大小写不敏感，通配符字符按普通输入处理。CSV 包含已撤销记录。
+- UI 的旧 actor 请求被取消或丢弃。服务中断可重试；未知结果下的批量重试冻结原课程和 key。
+
+## AI 证据与提交状态
+
+完整原生会话（含此前准备讨论、未采用建议、工具调用、编辑及失败）在 [ai/sessions](ai/sessions/)，索引为 [ai/session-index.csv](ai/session-index.csv)。另见 [决策记录](ai/decision-log.md)、[完整性声明](ai/completeness.md)、[导出清单](ai/export-manifest.json)。
+
+导出脚本 `scripts/export_ai.py` 保留原生时间线，仅进行声明的窄范围脱敏。`--finalize` 在当前会话回合结束后补录最终回复、提交证据并生成包含完整 git 历史的 `artifacts/certificate-admin-console.bundle`；最终 SHA 写入不参与版本控制的 `artifacts/submission.json`。可用 `git rev-parse HEAD` 核对最终提交。
+
+本地仓库从空目录创建，尚未配置远程仓库 URL。正式提交前还需要候选人独立完成 `written-answers.md`、确认第 6 部分未使用 AI，并提供评估方可访问的仓库 URL。本项目没有由 AI 创建或修改该答案文件。
+
+本次实现计时按用户指定为 2026-10-27 16:57–19:57（Asia/Shanghai）。原生会话从 14:36 起已有准备讨论，中间用户说明接了电话；这些时间和讨论均保留，不隐去准备阶段或代为认定正式考试计时合规。
+
+已知范围限制：只在 Windows、Chrome 实测；不包含生产认证、部署、通知、缓存或导出任务队列；单次超大课程的批量结果渲染未单独优化。CSV 中断后需要重新下载，无断点续传。没有已知未修复的 A1–A7 缺陷，环境差异仍须用提供的脚本验收。
