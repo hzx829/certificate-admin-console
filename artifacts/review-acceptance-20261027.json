@@ -1,0 +1,81 @@
+{
+  "review_phase": "post-deadline review; application and acceptance test code unchanged",
+  "commit": "45b2c1657803d9b0f887ffa94395c1a22cfd1603",
+  "started_at": "2026-10-27T12:48:36.226590+00:00",
+  "finished_at": "2026-10-27T12:48:58.885620+00:00",
+  "passed": true,
+  "cases": [
+    {
+      "case": "test_A1_tenant_isolation (tests.acceptance.Acceptance.test_A1_tenant_isolation)",
+      "passed": true,
+      "seconds": 1.4654723000712693
+    },
+    {
+      "case": "test_A2_concurrent_replay (tests.acceptance.Acceptance.test_A2_concurrent_replay)",
+      "passed": true,
+      "seconds": 1.8044467000290751
+    },
+    {
+      "case": "test_A2_different_keys_same_course (tests.acceptance.Acceptance.test_A2_different_keys_same_course)",
+      "passed": true,
+      "seconds": 1.707311199977994
+    },
+    {
+      "case": "test_A2_sequential_replay_and_restart (tests.acceptance.Acceptance.test_A2_sequential_replay_and_restart)",
+      "passed": true,
+      "seconds": 2.627147600054741
+    },
+    {
+      "case": "test_A3_concurrent_key_misuse (tests.acceptance.Acceptance.test_A3_concurrent_key_misuse)",
+      "passed": true,
+      "seconds": 1.6684745999518782
+    },
+    {
+      "case": "test_A3_key_misuse (tests.acceptance.Acceptance.test_A3_key_misuse)",
+      "passed": true,
+      "seconds": 1.4025224999058992
+    },
+    {
+      "case": "test_A4_outcomes_and_single_learner_rollback (tests.acceptance.Acceptance.test_A4_outcomes_and_single_learner_rollback)",
+      "passed": true,
+      "seconds": 1.3302953999955207
+    },
+    {
+      "case": "test_A4_whole_operation_rollback (tests.acceptance.Acceptance.test_A4_whole_operation_rollback)",
+      "passed": true,
+      "seconds": 1.3201932001393288
+    },
+    {
+      "case": "test_A5_dates_sorting_and_query_parity (tests.acceptance.Acceptance.test_A5_dates_sorting_and_query_parity)",
+      "passed": true,
+      "seconds": 1.202151000034064
+    },
+    {
+      "case": "test_A6_large_export (tests.acceptance.Acceptance.test_A6_large_export)",
+      "passed": true,
+      "seconds": 4.951120699988678
+    },
+    {
+      "case": "test_A7_audit_failure_rolls_back_status (tests.acceptance.Acceptance.test_A7_audit_failure_rolls_back_status)",
+      "passed": true,
+      "seconds": 1.3280393998138607
+    },
+    {
+      "case": "test_A7_revoke_retry_and_concurrency (tests.acceptance.Acceptance.test_A7_revoke_retry_and_concurrency)",
+      "passed": true,
+      "seconds": 1.8223425999749452
+    }
+  ],
+  "metrics": {
+    "A6": {
+      "east_rows": 100000,
+      "matching_rows": 33299,
+      "generation_seconds": 1.056918399874121,
+      "first_export_seconds": 0.24023590004071593,
+      "second_export_seconds": 0.12378200003877282,
+      "full_export_seconds": 0.5230837999843061,
+      "concurrent_list_seconds": 0.05221699993126094,
+      "overlap_seconds": 0.048298300011083484
+    }
+  }
+}

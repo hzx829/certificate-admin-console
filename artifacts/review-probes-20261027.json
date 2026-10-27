@@ -1,0 +1,51 @@
+{
+  "phase": "post-deadline review only",
+  "started_at": "2026-10-27T12:50:34.852206+00:00",
+  "commit": "45b2c1657803d9b0f887ffa94395c1a22cfd1603",
+  "probes": [
+    {
+      "name": "multi_process",
+      "observed_as_expected": true,
+      "processes": 2,
+      "concurrent_requests": 6,
+      "delta_cert_audit_operation": [
+        2,
+        2,
+        1
+      ],
+      "identical_results": true,
+      "classification": "covered",
+      "seconds": 3.3570280999410897
+    },
+    {
+      "name": "long_writer_wait",
+      "observed_as_expected": true,
+      "first_status": 503,
+      "wait_seconds": 16.428267600014806,
+      "retry_status": 200,
+      "no_side_effect_before_retry": true,
+      "classification": "confirmed_limitation",
+      "meaning": "Safe to retry, but not every original call returns the logical operation result under prolonged writer contention.",
+      "seconds": 17.760882300091907
+    },
+    {
+      "name": "scope_and_revoke_replay",
+      "observed_as_expected": true,
+      "unauthorized_course_with_existing_key": 404,
+      "historical_operation_result_preserved": true,
+      "revoked_certificate_not_reissued": true,
+      "revoke_replay_after_restart_identical": true,
+      "classification": "covered",
+      "seconds": 2.3483980000019073
+    },
+    {
+      "name": "empty_and_query_matrix",
+      "observed_as_expected": true,
+      "empty_course": "zero outcomes, zero certificates/audits, one operation",
+      "search_sort_direction_combinations": 32,
+      "classification": "covered",
+      "seconds": 1.563968800008297
+    }
+  ],
+  "finished_at": "2026-10-27T12:50:59.912658+00:00"
+}
