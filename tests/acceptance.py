@@ -27,7 +27,7 @@ METRICS = {}
 
 
 class Server:
-    def __init__(self, database):
+    def __init__(self, database, app="app.main:app", env=None):
         self.database = database
         with socket.socket() as sock:
             sock.bind(("127.0.0.1", 0))
@@ -35,8 +35,8 @@ class Server:
         self.url = f"http://127.0.0.1:{self.port}"
         self.log = open(str(database) + ".log", "ab")
         self.process = subprocess.Popen(
-            [sys.executable, "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", str(self.port), "--no-access-log"],
-            cwd=ROOT, env={**os.environ, "CERTIFICATE_DB": str(database)},
+            [sys.executable, "-m", "uvicorn", app, "--host", "127.0.0.1", "--port", str(self.port), "--no-access-log"],
+            cwd=ROOT, env={**os.environ, "CERTIFICATE_DB": str(database), **(env or {})},
             stdout=self.log, stderr=subprocess.STDOUT,
             creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
         self.client = httpx.Client(base_url=self.url, timeout=65, trust_env=False)
