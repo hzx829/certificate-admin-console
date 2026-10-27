@@ -1,7 +1,8 @@
 """Export this task's native Codex JSONL with declared, narrow redactions.
 
 --finalize waits for the current turn to finish, exports its final response too,
-commits the evidence and produces a Git bundle. No transcript is reconstructed.
+commits the evidence and packages main. --package-only verifies and packages the
+already committed evidence. Original delivery bundles are never overwritten.
 """
 import argparse
 import csv
@@ -47,6 +48,8 @@ def redact(record):
     payload = record.get("payload", {})
     if record.get("type") == "world_state":
         record["payload"] = replacement("internal platform state")
+    elif record.get("type") == "compacted":
+        record["payload"] = replacement("internal context compaction; original chronological interactions retained")
     elif isinstance(payload, dict):
         if payload.get("role") in ("system", "developer"):
             payload["content"] = replacement("platform instructions")
@@ -100,11 +103,52 @@ def export(source, records, raw):
     print(f"Exported {len(records)} native records through {manifest['exported_through']}",flush=True)
 
 
+def package_main():
+    if git("branch", "--show-current") != "main":
+        raise SystemExit("Package the selected main branch, not a development branch.")
+    if git("status", "--porcelain"):
+        raise SystemExit("Commit the intended submission files before packaging; working tree is not clean.")
+    manifest = json.loads((ROOT / "ai" / "export-manifest.json").read_text(encoding="utf-8"))
+    evidence_path = f"ai/sessions/{manifest['session_id']}.jsonl"
+    evidence = subprocess.check_output(["git", "show", f"HEAD:{evidence_path}"], cwd=ROOT)
+    if hashlib.sha256(evidence).hexdigest() != manifest["export_sha256"]:
+        raise SystemExit("Committed evidence does not match its manifest.")
+    with (ROOT / "ai" / "session-index.csv").open(encoding="utf-8", newline="") as file:
+        sessions = list(csv.DictReader(file))
+    if not all((ROOT / row["export_file"]).is_file() for row in sessions):
+        raise SystemExit("An indexed AI export is missing.")
+    sha = git("rev-parse", "HEAD")
+    bundle = ROOT / "artifacts" / "certificate-admin-console-main.bundle"
+    bundle.parent.mkdir(exist_ok=True)
+    git("bundle", "create", str(bundle), "--all")
+    git("bundle", "verify", str(bundle))
+    refs = dict(line.split(maxsplit=1)[::-1] for line in git("bundle", "list-heads", str(bundle)).splitlines())
+    if refs.get("refs/heads/main") != sha:
+        raise SystemExit("Bundle main does not point to the intended submission commit.")
+    submission = {"packaged_at":datetime.now(UTC).isoformat(), "branch":"main", "final_commit":sha,
+        "bundle":bundle.name, "bundle_sha256":hashlib.sha256(bundle.read_bytes()).hexdigest(),
+        "evidence_through":manifest["exported_through"], "evidence_sha256":manifest["export_sha256"],
+        "bundle_verified":True, "working_tree":"",
+        "original_delivery_commit":"45b2c1657803d9b0f887ffa94395c1a22cfd1603",
+        "phase":"Improved main, including user-authorized changes after the timed delivery",
+        "pending_submission_items":["Candidate-only written answers and personal no-AI confirmation", "Accessible remote repository URL"]}
+    (ROOT / "artifacts" / "main-submission.json").write_text(json.dumps(submission,indent=2),encoding="utf-8")
+    print(json.dumps(submission),flush=True)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", type=Path, required=True)
+    parser.add_argument("--source", type=Path)
     parser.add_argument("--finalize", action="store_true")
+    parser.add_argument("--package-only", action="store_true")
     args = parser.parse_args()
+    if args.package_only:
+        if args.source or args.finalize:
+            parser.error("--package-only cannot be combined with --source or --finalize")
+        package_main()
+        raise SystemExit(0)
+    if args.source is None:
+        parser.error("--source is required for native evidence export")
     records, raw = read_records(args.source)
     if args.finalize:
         started = [r["payload"] for r in records if r["type"] == "event_msg" and r["payload"].get("type") == "task_started"]
@@ -120,13 +164,8 @@ if __name__ == "__main__":
             raise SystemExit("Turn did not finish within 30 minutes. Re-run export; do not claim evidence is complete.")
     export(args.source, records, raw)
     if args.finalize:
-        git("add", "ai/sessions", "ai/session-index.csv", "ai/export-manifest.json")
-        if git("diff", "--cached", "--name-only"):
-            print(git("commit", "-m", "docs: finalize native AI evidence including delivery response"),flush=True)
-        sha = git("rev-parse", "HEAD")
-        bundle = ROOT / "artifacts" / "certificate-admin-console.bundle"
-        git("bundle", "create", str(bundle), "--all")
-        submission = {"finalized":True,"final_commit":sha,"bundle":str(bundle),"bundle_sha256":hashlib.sha256(bundle.read_bytes()).hexdigest(),
-                      "evidence_through":records[-1]["timestamp"],"working_tree":git("status", "--porcelain")}
-        (ROOT / "artifacts" / "submission.json").write_text(json.dumps(submission,indent=2),encoding="utf-8")
-        print(json.dumps(submission),flush=True)
+        paths = ["ai/sessions", "ai/session-index.csv", "ai/export-manifest.json"]
+        git("add", *paths)
+        if git("diff", "--cached", "--name-only", "--", *paths):
+            print(git("commit", "-m", "docs: finalize main submission interaction evidence", "--", *paths),flush=True)
+        package_main()

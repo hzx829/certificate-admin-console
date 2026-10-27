@@ -23,11 +23,20 @@ embedded in these same records; repository history and saved reports supplement
 it. AGENTS.md records the applicable project instructions and the user's updated
 authorization for automated and browser testing.
 
+The selected delivery branch is now main, including the separately authorized A2
+improvement and subsequent documentation. ai/sessions and the companion index,
+manifest and decision log are tracked and committed in Git. No remote is
+configured, so local commits and offline bundles do not imply a remote upload.
+The current package is certificate-admin-console-main.bundle with main-submission.json;
+original and A2-branch bundles remain historical snapshots.
+
 Declared export limitations and redactions:
 
 - Platform system/developer instructions, internal platform state, private account
   identifiers and non-user-visible reasoning are replaced by explicit
   `[REDACTED: reason]` markers. Visible task responses and tool actions are retained.
+- Synthetic internal context-compaction records are redacted; their original
+  chronological user messages, visible responses and tool actions remain present.
 - Image data URLs, if present, are excluded as binary; original tool calls and
   accessibility text remain. Screenshots do not substitute for the transcript.
 - A tool may truncate its output before the native log receives it. Such native
@@ -49,6 +58,8 @@ Timing: user selected an implementation window of 2026-10-27 16:57–19:57
 Asia/Shanghai after an interruption. Earlier preparation begins at 14:36 in the
 same native log and remains included. No claim is made that restarting this local
 clock independently establishes compliance with the assessment's one-sitting rule.
+Later review, A2 fixes and main packaging occurred after that window; their timestamps
+are preserved. See SUBMISSION.md for the selected version and submission boundaries.
 
 Section 6 is **not completed or verified by AI**. No written-answers.md was created,
 read or modified. The candidate must complete it independently and personally

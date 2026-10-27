@@ -1,30 +1,30 @@
 {
-  "exported_at": "2026-10-27T13:31:07.430876+00:00",
+  "exported_at": "2026-10-27T16:03:48.085715+00:00",
   "native_source_name": "rollout-2026-10-27T14-36-11-01a17c12-d4f6-7402-80e1-cc2e3463834f.jsonl",
   "session_id": "01a17c12-d4f6-7402-80e1-cc2e3463834f",
-  "record_count": 1309,
-  "exported_through": "2026-10-27T13:31:06.617Z",
-  "source_prefix_sha256": "f8d4ee86b115f541b1fd39236f65ddc7bd5cc67d3b09583fc2c04ce984af8fd9",
-  "export_sha256": "6d0889b0f4bfa5a37b71fc7fe307b47969b774e8d03143ab450cf33f85c8fb5c",
+  "record_count": 1412,
+  "exported_through": "2026-10-27T16:03:47.775Z",
+  "source_prefix_sha256": "28b96456ec778769ed3df7c1f1c17feb5db7f1ebebbefbc274b922a7a93a6c45",
+  "export_sha256": "4dc1dbba65da15ad1e21b1b42e23eddd9e7be39caec04bac64b52165d8ca4d42",
   "record_types": {
-    "session_meta": 10,
-    "event_msg": 557,
-    "response_item": 555,
-    "world_state": 3,
-    "turn_context": 11,
-    "token_usage_record": 172,
-    "compacted": 1
+    "session_meta": 11,
+    "event_msg": 600,
+    "response_item": 598,
+    "world_state": 4,
+    "turn_context": 13,
+    "token_usage_record": 184,
+    "compacted": 2
   },
   "redactions": {
-    "private account identifier": 20,
-    "platform instructions": 37,
-    "internal platform metadata": 555,
-    "internal platform state": 3,
-    "internal context summary": 11,
-    "hidden reasoning": 362,
-    "hidden reasoning payload": 170,
+    "private account identifier": 22,
+    "platform instructions": 44,
+    "internal platform metadata": 630,
+    "internal platform state": 4,
+    "internal context summary": 13,
+    "hidden reasoning payload": 186,
+    "hidden reasoning": 394,
     "image binary; original tool action and text retained": 56,
-    "internal context compaction; original chronological interactions retained": 1
+    "internal context compaction; original chronological interactions retained": 2
   },
   "format": "Native chronological JSONL, with explicitly declared redactions; no reconstructed or selected messages."
 }

@@ -2,9 +2,9 @@
 
 多租户培训平台的结业证书后台。React + FastAPI + SQLite；支持 actor 切换、证书搜索／分页／排序、批量发证、详情与审计、撤销和 CSV 导出。
 
-[A1–A7 验收方案](docs/ACCEPTANCE.md) 在应用代码之前提交。真实 HTTP／数据库验收的 **12 个用例全部通过**，并完成 Chrome 界面实测；详见 [自动化结果](artifacts/acceptance-results.json)、[Chrome 记录](artifacts/ui-verification.md) 和 [干净环境启动检查](artifacts/startup-verification.json)。
+当前交付分支为 **`main`**，已包含 A2 改进，保留完整开发和纠错历史。[A1–A7 验收方案](docs/ACCEPTANCE.md) 与 [A2 补充验收](docs/A2-RECOVERY-ACCEPTANCE.md) 均在相应实现之前提交。
 
-后续用户授权的 A2 改进已完成，当前 `codex/a2-recovery` 分支通过 **16 项 HTTP 验收 + 5 项前端状态测试**，并完成刷新恢复、丢响应、身份切换、存储失败的 Chrome 实测。见 [改进验收与结果](docs/A2-RECOVERY-RESULTS.md)。这部分不计入原三小时成果，原交付 bundle 保留。
+当前实现通过 **16 项真实 HTTP 验收 + 5 项前端状态测试**，并完成 Chrome 实测，包括刷新恢复、丢响应、身份切换、存储失败和主要工作流。见 [自动化结果](artifacts/a2-regression-results.json)、[Chrome 核验结果](artifacts/a2-ui-results.json) 与 [改进说明](docs/A2-RECOVERY-RESULTS.md)。版本、打包、时间线和待补材料统一见 [提交说明](SUBMISSION.md)。
 
 ## 启动
 
@@ -24,7 +24,7 @@ Linux/macOS 或已将 Python 配置到 PATH 的环境可使用 `python3 run.py`�
 .\run.ps1 start -Database data/demo-fresh.db
 ```
 
-当前本机目录另备有初始数据 `data/ready-demo.db`，可用 `.\run.ps1 -Database data/ready-demo.db` 启动。原演示数据保留了 UI 实测操作；临时验证目录因清理命令被自动安全检查拦截而保留，均已被 gitignore 排除，不进入提交和 Git bundle。
+本机已有的 `data/ready-demo.db` 等数据库可能包含操作记录，不承诺仍为初始数据。Git 交付包含初始化代码，不包含本机数据库、依赖缓存或临时验证目录；全新克隆首次启动会生成默认小数据集。
 
 ## 身份与默认数据
 
@@ -92,7 +92,7 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8765/api/bulk-issue `
 
 导出接口示例：`GET /api/certificates/export?q=Alex&sort=learner_name&direction=asc`，携带 Alice header。导出采用一次有序查询、读快照和分批流式编码；排序最后追加唯一 ID。分页参数不会限制导出范围。
 
-本次 Windows 本机测量：33,299 行的两次导出约 0.247 秒、0.131 秒；100,000 行完整导出约 0.556 秒；并发列表请求约 0.054 秒，在首次导出结束前完成。数值及时间重叠记录保存在自动化报告中，其他机器需要重新测量。
+当前实现的 Windows 本机测量：33,299 行的两次导出约 0.244 秒、0.120 秒；100,000 行完整导出约 0.521 秒；并发列表请求约 0.055 秒，在首次导出结束前完成。数值及时间重叠记录保存在当前自动化报告中，其他机器需要重新测量。
 
 ## 关键实现选择
 
@@ -107,14 +107,10 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8765/api/bulk-issue `
 
 完整原生会话（含此前准备讨论、未采用建议、工具调用、编辑及失败）在 [ai/sessions](ai/sessions/)，索引为 [ai/session-index.csv](ai/session-index.csv)。另见 [决策记录](ai/decision-log.md)、[完整性声明](ai/completeness.md)、[导出清单](ai/export-manifest.json)。
 
-导出脚本 `scripts/export_ai.py` 保留原生时间线，仅进行声明的窄范围脱敏。`--finalize` 在当前会话回合结束后补录最终回复、提交证据并生成包含完整 git 历史的 `artifacts/certificate-admin-console.bundle`；最终 SHA 写入不参与版本控制的 `artifacts/submission.json`。可用 `git rev-parse HEAD` 核对最终提交。
+`ai/sessions/` 已提交本地 Git，随 main 历史和 Git bundle 一并交付；目前没有远程仓库，因此尚未上传 GitHub 等服务。后续推送 main 会包含这些已跟踪的证据文件。
 
-本地仓库从空目录创建，尚未配置远程仓库 URL。正式提交前还需要候选人独立完成 `written-answers.md`、确认第 6 部分未使用 AI，并提供评估方可访问的仓库 URL。本项目没有由 AI 创建或修改该答案文件。
+统一交付包为 `artifacts/certificate-admin-console-main.bundle`，完整 SHA、包哈希及证据截止时间见配套 `artifacts/main-submission.json`。导出脚本 `scripts/export_ai.py --finalize` 会等待当前回合结束、补录最终回复、提交证据并重新生成此包；不覆盖原版或 A2 分支归档。使用方法见 [提交说明](SUBMISSION.md)。
 
-本次实现计时按用户指定为 2026-10-27 16:57–19:57（Asia/Shanghai）。原生会话从 14:36 起已有准备讨论，中间用户说明接了电话；这些时间和讨论均保留，不隐去准备阶段或代为认定正式考试计时合规。
+提交仍待候选人独立完成 `written-answers.md`、本人确认第 6 部分未使用 AI，并提供评估方可访问的仓库 URL。当前 main 含原定 2026-10-27 16:57–19:57 窗口结束后的改进，完整时间线保留在证据和提交说明中。
 
-已知范围限制：只在 Windows、Chrome 实测；不包含生产认证、部署、通知、缓存或导出任务队列；单次超大课程的批量结果渲染未单独优化。CSV 中断后需要重新下载，无断点续传。环境差异仍须用提供的脚本验收。
-
-2026-10-27 20:48 后的交付后 review：原 12 项验收再次通过，但补测确认 A2 在长时间写锁竞争下会返回 503，需要原 key 重试，不能保证所有原始调用直接收到操作结果；页面刷新也不保留前端 pending key。详细设计映射、实测证据和验证缺口见 [A1–A7 复核](docs/REVIEW-A1-A7-20261027.md)。这修正了原先“没有已知未修复 A1–A7 缺陷”的宽泛表述；应用实现没有修改。原 bundle / submission.json 保留交付提交 `45b2c1657803d9b0f887ffa94395c1a22cfd1603`，review 提交和新增证据不计入原三小时成果。
-
-上述段落记录的是历史复核。其后用户明确授权按最小方案修改，现已解决已完成操作抢写锁、20 秒等待失败、刷新丢 key 的已测场景。当前仍有 60 秒等待预算与 sessionStorage 生命周期边界，不能保证数据库长期不可用时请求成功。后续包使用独立名称 `certificate-admin-console-a2.bundle`。
+已知范围限制：只在 Windows、Chrome 实测；批量发证超过 60 秒等待预算可返回 503，需原 key 重试；sessionStorage 不保证关闭标签页后恢复；单次超大课程的批量结果渲染未单独优化；CSV 中断后需要重新下载，没有断点续传。不包含题目排除的生产认证、部署或通知。环境差异仍须用提供的脚本验收。
