@@ -1,28 +1,30 @@
 {
-  "exported_at": "2026-10-27T09:50:48.362889+00:00",
+  "exported_at": "2026-10-27T09:53:46.706496+00:00",
   "native_source_name": "rollout-2026-10-27T14-36-11-01a17c12-d4f6-7402-80e1-cc2e3463834f.jsonl",
   "session_id": "01a17c12-d4f6-7402-80e1-cc2e3463834f",
-  "record_count": 751,
-  "exported_through": "2026-10-27T09:50:47.883Z",
-  "source_prefix_sha256": "f916da88fec7a692c0eed1ba3d9983c70bd05cb7188a6f8a5bf92c3a3e44a52f",
-  "export_sha256": "d74affad43b5bad9d23a7e07297b86120ad18865ab04c452255fab1a53cb14c8",
+  "record_count": 785,
+  "exported_through": "2026-10-27T09:53:46.488Z",
+  "source_prefix_sha256": "c41b97cbd177131149cc8fd6bbe4807a1c3327242d47fdb70fe695c8c061c7d1",
+  "export_sha256": "34e3664635221a90068a4c26ec07ccd43de30a4c2ff9efdd002ead6f29f7e4d0",
   "record_types": {
     "session_meta": 6,
-    "event_msg": 349,
-    "response_item": 307,
-    "world_state": 2,
-    "turn_context": 5,
-    "token_usage_record": 82
+    "event_msg": 362,
+    "response_item": 319,
+    "world_state": 3,
+    "turn_context": 6,
+    "token_usage_record": 88,
+    "compacted": 1
   },
   "redactions": {
     "private account identifier": 12,
-    "platform instructions": 20,
-    "internal platform metadata": 307,
-    "internal platform state": 2,
-    "internal context summary": 5,
-    "hidden reasoning payload": 117,
-    "hidden reasoning": 277,
-    "image binary; original tool action and text retained": 32
+    "platform instructions": 22,
+    "internal platform metadata": 319,
+    "internal platform state": 3,
+    "internal context summary": 6,
+    "hidden reasoning": 283,
+    "hidden reasoning payload": 121,
+    "image binary; original tool action and text retained": 32,
+    "internal context compaction; original chronological interactions retained": 1
   },
   "format": "Native chronological JSONL, with explicitly declared redactions; no reconstructed or selected messages."
 }
