@@ -3,5 +3,8 @@
   "command": "./run.ps1 start -Port 8768",
   "static_assets_ok": 2,
   "fresh_east_certificates": 4,
-  "restart_preserved_revocation": true
+  "restart_preserved_revocation": true,
+  "verify_command": "./run.ps1 verify",
+  "verify_passed": true,
+  "verify_report": "clean-clone-acceptance.json"
 }
