@@ -8,5 +8,6 @@ data/
 artifacts/*.csv
 artifacts/*.db*
 artifacts/server*.log
+artifacts/tmp/
 *.tmp
 .env
