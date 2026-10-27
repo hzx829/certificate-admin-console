@@ -14,3 +14,11 @@ The initial dependency install reported a high-severity Vite advisory. Vite was
 updated from 8.0.3 to 8.3.5 before verification; the subsequent install audit
 reported zero vulnerabilities. Commands, errors and outputs remain in the native
 session. No AI failure or user rejection has been invented for this record.
+
+Post-delivery A2 improvement, explicitly authorized by the user in the same session:
+
+| Decision | Reason and result | Verification | Commit |
+| --- | --- | --- | --- |
+| Accepted: optimistic read replay followed by recheck under the write lock; sessionStorage before sending | Completed results should not compete for a writer; reload must reuse the original key and payload. Keep the existing operation table and atomic write transaction. | [Tests committed before implementation](../docs/A2-RECOVERY-ACCEPTANCE.md), [old implementation failures](../artifacts/a2-before-results.json), [Chrome trace assertions](../artifacts/a2-ui-results.json) | f98f055, 0ee2032, 50370a5 |
+| Corrected: retrying BUSY only at BEGIN IMMEDIATE was too narrow | Real concurrency produced BUSY during the preceding course SELECT. Extended retries only over the pre-write phase; failures after writes are still rolled back and reported. | [First implementation failures](../artifacts/a2-first-implementation-results.json), [diagnostic traceback](../artifacts/a2-concurrency-diagnostic.log), [16 passing HTTP cases](../artifacts/a2-regression-results.json) | 50370a5 |
+| Scope: bounded waiting and per-tab recovery | Use a 60-second asynchronous waiting budget and sessionStorage. Long database outages may still return structured 503; closed-tab recovery is not promised. No queue, schema migration or cross-device history. | [Result and limitations](../docs/A2-RECOVERY-RESULTS.md), [five frontend tests](../artifacts/a2-frontend-tests.txt) | 50370a5 |
