@@ -1,9 +1,11 @@
+import asyncio
 import csv
 import io
 import json
 import logging
 import os
 import sqlite3
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated, Literal
@@ -13,6 +15,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
+from starlette.concurrency import run_in_threadpool
 
 from .db import connection, initialize, insert_certificate, local_datetime, utc_now
 
@@ -60,7 +63,7 @@ def detail(db, tenant_id, certificate_id):
     return result
 
 
-def create_app(database=None):
+def create_app(database=None, *, bulk_wait_seconds=60):
     database = Path(database or os.environ.get("CERTIFICATE_DB", ROOT / "data" / "demo.db"))
 
     @asynccontextmanager
@@ -72,7 +75,7 @@ def create_app(database=None):
 
     @app.exception_handler(sqlite3.Error)
     async def database_error(request, exc):
-        logging.getLogger("certificate").error("Database request failed: %s", exc)
+        logging.getLogger("certificate").error("Database request failed: %s", exc, exc_info=True)
         return JSONResponse(status_code=503, content={"detail": "Database operation failed. Retry with the same operation key."})
 
     def actor(x_actor_token: Annotated[str | None, Header()] = None):
@@ -144,23 +147,34 @@ def create_app(database=None):
         with connection(database) as db:
             return detail(db, current["tenant_id"], certificate_id)
 
-    @app.post("/api/bulk-issue")
-    def bulk_issue(body: BulkRequest, current: Actor,
-                   idempotency_key: Annotated[str, Header(min_length=1, max_length=200)]):
-        if not idempotency_key.strip():
-            raise HTTPException(422, "Idempotency-Key must not be blank")
+    def replay(db, current, idempotency_key, request_json):
+        old = db.execute("SELECT request_json,result_json FROM operations WHERE tenant_id=? AND actor_id=? "
+                         "AND kind='bulk_issue' AND idempotency_key=?",
+                         (current["tenant_id"], current["id"], idempotency_key)).fetchone()
+        if old:
+            if old["request_json"] != request_json:
+                raise HTTPException(409, "Idempotency key is already used for a different request")
+            return json.loads(old["result_json"])
+        return None
+
+    def bulk_attempt(body, current, idempotency_key, request_json):
         tenant = current["tenant_id"]
-        request_json = json.dumps(body.model_dump(), sort_keys=True, separators=(",", ":"))
-        with connection(database) as db:
-            if db.execute("SELECT 1 FROM courses WHERE tenant_id=? AND id=?", (tenant, body.course_id)).fetchone() is None:
-                raise HTTPException(404, "Course not found")
-            db.execute("BEGIN IMMEDIATE")
-            old = db.execute("SELECT request_json,result_json FROM operations WHERE tenant_id=? AND actor_id=? "
-                             "AND kind='bulk_issue' AND idempotency_key=?", (tenant, current["id"], idempotency_key)).fetchone()
-            if old:
-                if old["request_json"] != request_json:
-                    raise HTTPException(409, "Idempotency key is already used for a different request")
-                result = json.loads(old["result_json"])
+        with connection(database, timeout=0) as db:
+            try:
+                if db.execute("SELECT 1 FROM courses WHERE tenant_id=? AND id=?", (tenant, body.course_id)).fetchone() is None:
+                    raise HTTPException(404, "Course not found")
+                result = replay(db, current, idempotency_key, request_json)
+                if result is not None:
+                    return result
+                db.execute("BEGIN IMMEDIATE")
+            except sqlite3.OperationalError as exc:
+                # WAL can briefly report BUSY on reads too. Retry only before writes.
+                if getattr(exc, "sqlite_errorcode", 0) & 0xFF == sqlite3.SQLITE_BUSY:
+                    return None
+                raise
+            # Another process may have committed since the optimistic read.
+            result = replay(db, current, idempotency_key, request_json)
+            if result is not None:
                 db.commit()
                 return result
             operation_id, issued_at = uuid4().hex, utc_now()
@@ -198,6 +212,24 @@ def create_app(database=None):
             db.execute("UPDATE operations SET result_json=? WHERE id=?", (json.dumps(response, ensure_ascii=False), operation_id))
             db.commit()
             return response
+
+    @app.post("/api/bulk-issue")
+    async def bulk_issue(body: BulkRequest, current: Actor,
+                         idempotency_key: Annotated[str, Header(min_length=1, max_length=200)]):
+        if not idempotency_key.strip():
+            raise HTTPException(422, "Idempotency-Key must not be blank")
+        request_json = json.dumps(body.model_dump(), sort_keys=True, separators=(",", ":"))
+        deadline = time.monotonic() + bulk_wait_seconds
+        while True:
+            result = await run_in_threadpool(bulk_attempt, body, current, idempotency_key, request_json)
+            if result is not None:
+                return result
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                return JSONResponse(status_code=503, headers={"Retry-After":"1"}, content={
+                    "code":"OPERATION_BUSY", "detail":"Database is busy. Continue using the same operation key."})
+            # No open connection, transaction or worker thread is held while waiting.
+            await asyncio.sleep(min(0.2, remaining))
 
     @app.post("/api/certificates/{certificate_id}/revoke")
     def revoke(certificate_id: int, current: Actor):

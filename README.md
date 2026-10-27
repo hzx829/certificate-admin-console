@@ -4,6 +4,8 @@
 
 [A1–A7 验收方案](docs/ACCEPTANCE.md) 在应用代码之前提交。真实 HTTP／数据库验收的 **12 个用例全部通过**，并完成 Chrome 界面实测；详见 [自动化结果](artifacts/acceptance-results.json)、[Chrome 记录](artifacts/ui-verification.md) 和 [干净环境启动检查](artifacts/startup-verification.json)。
 
+后续用户授权的 A2 改进已完成，当前 `codex/a2-recovery` 分支通过 **16 项 HTTP 验收 + 5 项前端状态测试**，并完成刷新恢复、丢响应、身份切换、存储失败的 Chrome 实测。见 [改进验收与结果](docs/A2-RECOVERY-RESULTS.md)。这部分不计入原三小时成果，原交付 bundle 保留。
+
 ## 启动
 
 需要 Python 3.12+、Node.js 22.12+ 或 24+，首次安装依赖需要网络。在仓库目录执行一个命令：
@@ -55,14 +57,14 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8765/api/bulk-issue `
 .\run.ps1 verify
 ```
 
-跨平台入口：`python3 run.py verify`。验收启动独立服务器，使用临时数据库和真实并发 HTTP 请求；不会修改默认演示数据。结果写入 `artifacts/acceptance-results.json`。首轮曾因测试资源没有正确关闭而失败，[原始失败报告](artifacts/acceptance-first-run.json) 与修复提交均保留。
+跨平台入口：`python3 run.py verify`。验收启动独立服务器，使用临时数据库和真实并发 HTTP 请求；不会修改默认演示数据。当前完整回归结果写入 `artifacts/a2-regression-results.json`，随后执行前端状态测试。原 12 项报告保存在 `artifacts/acceptance-results.json`。首轮曾因测试资源没有正确关闭而失败，[原始失败报告](artifacts/acceptance-first-run.json) 与修复提交均保留。
 
 以下从全新小数据集开始；修改数据的场景应单独使用新数据库，或直接运行隔离的自动化验收。
 
 | 场景 | 复现与通过标准 | 自动化用例 |
 | --- | --- | --- |
 | A1 隔离 | Bob 查询 East 编号 E-DEMO-001、导出该编号：空结果；GET `/api/certificates/1`、POST `/api/bulk-issue` 指定 101、POST `/api/certificates/1/revoke`：404，无证书、审计或操作写入。双方 Alex 的结果只属于各自租户。 | test_A1_tenant_isolation |
-| A2 重试 | 同一 key 对 101 顺序及并发调用，所有结果相同；只新增 2 张证书和 2 条发证审计、1 条操作。重启后重放仍相同。不同 key 并发操作同一课程，也不能重复发证。 | 三个 test_A2 用例 |
+| A2 重试 | 同一 key 对 101 顺序及并发调用，所有结果相同；只新增 2 张证书和 2 条发证审计、1 条操作。重启后重放仍相同。包含两进程 20 秒提交前等待、48 个等待者下列表可用、已完成结果免写锁重放、等待预算及安全重试。 | tests/a2_recovery.py 中七个 test_A2 用例 |
 | A3 key 冲突 | Alice 先以 K 对 101 发证，再以 K 对 102 请求：409，原结果不变、102 无写入；原请求仍可重放。并发不同课程也只能执行一种。 | 两个 test_A3 用例 |
 | A4 结果 | East 101 首次发证：Alex、Morgan issued；Jamie skipped/not_completed；Casey skipped/already_certified。验收脚本注入单个审计写入失败，确认该学员没有半成品；注入最终结果写入失败，确认整个批次回滚。 | 两个 test_A4 用例 |
 | A5 时区 | 详情 1 显示 2026-01-11 00:30；Bob 查看详情 2 显示 2026-01-10 21:30。3 显示冬季 2026-07-10 23:30。日期升序 ID 为 4、1、5、3，降序为 3、1、5、4；分页和 CSV 一致。 | test_A5_dates_sorting_and_query_parity |
@@ -95,11 +97,11 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8765/api/bulk-issue `
 ## 关键实现选择
 
 - 幂等操作结果持久化，不依赖进程内缓存。操作、证书和审计在同一外层事务内提交；逐学员 savepoint 允许可恢复的局部失败。
-- SQLite 启用 WAL、外键和唯一约束。写事务使用 BEGIN IMMEDIATE，锁等待最多 15 秒；故障返回可重试错误，前端保留原 key。
+- SQLite 启用 WAL、外键和唯一约束。批量发证先只读重放，再尝试 BEGIN IMMEDIATE，取得写锁后复查 key。写入前的 SQLITE_BUSY 使用异步有界重试，等待期间不占连接或工作线程；60 秒等待预算耗尽返回 503、code=OPERATION_BUSY、Retry-After: 1，调用方继续使用原 key。其他数据库错误不自动重试，撤销等其他写路径仍使用原 15 秒锁等待。
 - 同一租户／课程／学员一生最多一张证书，撤销后不重发；没有重发、删除或编辑证书功能。
 - UTC 时间保留，按租户 IANA 时区转换；本地日历日期在发证时计算保存用于排序，租户时区在本题中固定。
 - 列表和导出共用筛选与排序规则；搜索匹配姓名或编号，英文大小写不敏感，通配符字符按普通输入处理。CSV 包含已撤销记录。
-- UI 的旧 actor 请求被取消或丢弃。服务中断可重试；未知结果下的批量重试冻结原课程和 key。
+- UI 的旧 actor 请求被取消或丢弃。发请求前按 actor 将 key 和完整 payload 保存到 sessionStorage；刷新或切回 actor 后可继续原操作，未知结果下冻结原课程和 key。确认完成才清理恢复记录；存储失败时阻止发送。sessionStorage 不承诺关闭标签页后的恢复。
 
 ## AI 证据与提交状态
 
@@ -114,3 +116,5 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8765/api/bulk-issue `
 已知范围限制：只在 Windows、Chrome 实测；不包含生产认证、部署、通知、缓存或导出任务队列；单次超大课程的批量结果渲染未单独优化。CSV 中断后需要重新下载，无断点续传。环境差异仍须用提供的脚本验收。
 
 2026-10-27 20:48 后的交付后 review：原 12 项验收再次通过，但补测确认 A2 在长时间写锁竞争下会返回 503，需要原 key 重试，不能保证所有原始调用直接收到操作结果；页面刷新也不保留前端 pending key。详细设计映射、实测证据和验证缺口见 [A1–A7 复核](docs/REVIEW-A1-A7-20261027.md)。这修正了原先“没有已知未修复 A1–A7 缺陷”的宽泛表述；应用实现没有修改。原 bundle / submission.json 保留交付提交 `45b2c1657803d9b0f887ffa94395c1a22cfd1603`，review 提交和新增证据不计入原三小时成果。
+
+上述段落记录的是历史复核。其后用户明确授权按最小方案修改，现已解决已完成操作抢写锁、20 秒等待失败、刷新丢 key 的已测场景。当前仍有 60 秒等待预算与 sessionStorage 生命周期边界，不能保证数据库长期不可用时请求成功。后续包使用独立名称 `certificate-admin-console-a2.bundle`。

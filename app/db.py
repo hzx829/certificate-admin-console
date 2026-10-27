@@ -68,8 +68,8 @@ def local_datetime(timestamp, timezone):
 
 
 @contextmanager
-def connection(path):
-    db = sqlite3.connect(str(path), timeout=15, isolation_level=None, check_same_thread=False)
+def connection(path, *, timeout=15):
+    db = sqlite3.connect(str(path), timeout=timeout, isolation_level=None, check_same_thread=False)
     db.row_factory = sqlite3.Row
     db.execute("PRAGMA foreign_keys=ON")
     try:

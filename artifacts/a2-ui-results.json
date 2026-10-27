@@ -1,0 +1,27 @@
+{
+  "verified_at": "2026-10-27T13:27:07.364803+00:00",
+  "browser": "Chrome",
+  "loss_refresh_same_key_payload_and_result": true,
+  "actor_switch_recovery_isolated": true,
+  "next_deliberate_operation_new_key": true,
+  "refresh_before_commit_same_key": true,
+  "busy_response_then_same_key_success": true,
+  "storage_denied_post_count": 0,
+  "pending_database_counts": [
+    7,
+    7,
+    1
+  ],
+  "loss_database_counts_after_revoke": [
+    9,
+    10,
+    3
+  ],
+  "cancel_then_confirm_one_revocation": true,
+  "page_two_export_all_matching_rows": 6,
+  "search_empty_state_observed": true,
+  "evidence": [
+    "a2-ui-loss-network.jsonl",
+    "a2-ui-pending-network.jsonl"
+  ]
+}

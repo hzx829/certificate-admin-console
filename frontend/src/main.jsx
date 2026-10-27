@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {createRoot} from 'react-dom/client';
+import {loadPending, savePending, clearPending} from './pending.js';
 import './style.css';
 
 async function request(path, token, options = {}) {
@@ -39,6 +40,10 @@ function App() {
 }
 
 function Console({actor}) {
+  const [recovery] = useState(() => {
+    try { return {operation:loadPending(actor)}; }
+    catch { return {error:'Could not read the saved operation. Restore browser session storage access and reload before issuing.'}; }
+  });
   const [draft, setDraft] = useState('');
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState('issue_date');
@@ -48,16 +53,17 @@ function Console({actor}) {
   const [refresh, setRefresh] = useState(0);
   const [list, setList] = useState({phase:'loading', items:[], total:0});
   const [courses, setCourses] = useState([]);
-  const [course, setCourse] = useState('');
+  const [course, setCourse] = useState(() => String(recovery.operation?.payload.course_id || ''));
   const [courseError, setCourseError] = useState('');
-  const [bulk, setBulk] = useState({phase:'idle'});
+  const [bulk, setBulk] = useState(() => recovery.error ? {phase:'blocked',error:recovery.error}
+    : {phase:recovery.operation ? 'recovered' : 'idle'});
   const [exportState, setExportState] = useState({phase:'idle'});
   const [selected, setSelected] = useState(null);
   const [detail, setDetail] = useState({phase:'loading'});
   const [confirm, setConfirm] = useState(false);
   const [revoking, setRevoking] = useState(false);
   const [revokeError, setRevokeError] = useState('');
-  const pending = useRef(null);
+  const pending = useRef(recovery.operation || null);
   const busy = useRef(false);
   const exportBusy = useRef(false);
   const revokeBusy = useRef(false);
@@ -97,17 +103,32 @@ function Console({actor}) {
   }, [selected,actor.token]);
 
   async function issue() {
-    if(busy.current || !course) return;
+    if(busy.current || !course || bulk.phase === 'blocked') return;
     busy.current = true;
-    if(!pending.current) pending.current = {key:crypto.randomUUID(),course_id:Number(course)};
+    if(!pending.current) {
+      try {
+        const operation = {key:crypto.randomUUID(),payload:{course_id:Number(course)}};
+        savePending(actor,operation);
+        pending.current = operation;
+      } catch {
+        setBulk({phase:'blocked',error:'Could not save this operation. No request was sent. Restore browser session storage access and reload.'});
+        busy.current = false;
+        return;
+      }
+    }
     const operation = pending.current;
     setBulk({phase:'loading'});
     try {
       const response = await request('/api/bulk-issue',actor.token,{method:'POST',signal:lifetime.current.signal,
-        headers:{'Content-Type':'application/json','Idempotency-Key':operation.key},body:JSON.stringify({course_id:operation.course_id})});
+        headers:{'Content-Type':'application/json','Idempotency-Key':operation.key},body:JSON.stringify(operation.payload)});
       const data = await response.json();
       if(!alive.current) return;
-      pending.current = null; setBulk({phase:'ready',data}); setRefresh(n=>n+1);
+      if(data.status !== 'completed' || data.course_id !== operation.payload.course_id || typeof data.operation_id !== 'string'
+        || !Array.isArray(data.outcomes)) throw new Error('The operation result could not be confirmed. Continue with the same operation.');
+      let warning = '';
+      try { clearPending(actor,operation.key); }
+      catch { warning = 'Result confirmed, but the saved recovery record could not be cleared. Reloading may offer this completed operation again.'; }
+      pending.current = null; setBulk({phase:'ready',data,warning}); setRefresh(n=>n+1);
     } catch(e) { if(alive.current && e.name !== 'AbortError') setBulk({phase:'error',error:e.message}); }
     finally { busy.current = false; }
   }
@@ -164,15 +185,18 @@ function Console({actor}) {
         <span>Page {page} of {totalPages}</span><button className="secondary small" disabled={page<=1 || list.phase!=='ready'} onClick={()=>setPage(n=>n-1)}>Previous</button><button className="secondary small" disabled={page>=totalPages || list.phase!=='ready'} onClick={()=>setPage(n=>n+1)}>Next</button></div>
     </section>
     <aside className="panel issue-panel"><p className="eyebrow">Course completions</p><h2>Issue certificates</h2><p className="muted">Issue to every completed learner who has not already received a certificate.</p>
-      <label>Course<select value={course} disabled={bulk.phase==='loading' || !!pending.current} onChange={e=>{setCourse(e.target.value);setBulk({phase:'idle'});}}>
+      <label>Course<select value={course} disabled={bulk.phase==='loading' || bulk.phase==='blocked' || !!pending.current} onChange={e=>{setCourse(e.target.value);setBulk({phase:'idle'});}}>
         {courses.map(c=><option key={c.id} value={c.id}>{c.title} · {c.completed}/{c.enrolled} completed</option>)}
       </select></label>
       {courseError && <p role="alert" className="notice error">{courseError} <button onClick={()=>setRefresh(n=>n+1)}>Retry courses</button></p>}
-      <button className="primary full" disabled={!course || !!courseError || bulk.phase==='loading'} onClick={issue}>{bulk.phase==='loading'?'Issuing certificates…':bulk.phase==='error'?'Retry same operation':'Issue certificates'}</button>
+      <button className="primary full" disabled={!course || !!courseError || bulk.phase==='loading' || bulk.phase==='blocked'} onClick={issue}>{bulk.phase==='loading'?'Issuing certificates…':bulk.phase==='recovered'?'Continue original operation':bulk.phase==='error'?'Retry same operation':'Issue certificates'}</button>
       <p className="hint">Incomplete and previously certified learners are skipped.</p>
+      {bulk.phase==='recovered' && <p role="status" className="notice">An unconfirmed operation was restored. Continue with its original course.</p>}
+      {bulk.phase==='blocked' && <p role="alert" className="notice error">{bulk.error}</p>}
       {bulk.phase==='loading' && <p role="status" className="notice">Processing this course. Please wait…</p>}
       {bulk.phase==='error' && <div role="alert" className="notice error"><p>{bulk.error}</p><p>The result is unconfirmed. Retry safely using the same operation.</p></div>}
       {bulk.phase==='ready' && <div className="operation-result"><h3 role="status">Operation complete</h3><div className="summary"><span><b>{bulk.data.summary.issued}</b> issued</span><span><b>{bulk.data.summary.skipped}</b> skipped</span><span><b>{bulk.data.summary.failed}</b> failed</span></div>
+        {bulk.warning && <p role="alert" className="notice error">{bulk.warning}</p>}
         <ul>{bulk.data.outcomes.map(row=><li key={row.learner_id}><div><strong>{row.learner_name}</strong><span>{row.reason?.replaceAll('_',' ') || row.serial_number}</span></div><span className={`outcome ${row.outcome}`}>{row.outcome}</span></li>)}</ul>
         <p className="hint operation-id">Operation {bulk.data.operation_id}</p></div>}
     </aside></div>

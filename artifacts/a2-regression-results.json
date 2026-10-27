@@ -1,0 +1,100 @@
+{
+  "phase": "post-delivery A2 improvement",
+  "started_at": "2026-10-27T13:21:46.965178+00:00",
+  "finished_at": "2026-10-27T13:22:43.284661+00:00",
+  "passed": true,
+  "cases": [
+    {
+      "case": "test_A1_tenant_isolation (__main__.Recovery.test_A1_tenant_isolation)",
+      "passed": true,
+      "seconds": 1.5220929000061005
+    },
+    {
+      "case": "test_A2_completed_replay_without_writer_lock (__main__.Recovery.test_A2_completed_replay_without_writer_lock)",
+      "passed": true,
+      "seconds": 1.3971244001295418
+    },
+    {
+      "case": "test_A2_concurrent_replay (__main__.Recovery.test_A2_concurrent_replay)",
+      "passed": true,
+      "seconds": 2.014808500185609
+    },
+    {
+      "case": "test_A2_different_keys_same_course (__main__.Recovery.test_A2_different_keys_same_course)",
+      "passed": true,
+      "seconds": 2.610287600196898
+    },
+    {
+      "case": "test_A2_sequential_replay_and_restart (__main__.Recovery.test_A2_sequential_replay_and_restart)",
+      "passed": true,
+      "seconds": 2.768062099814415
+    },
+    {
+      "case": "test_A2_uncommitted_twenty_seconds_two_processes (__main__.Recovery.test_A2_uncommitted_twenty_seconds_two_processes)",
+      "passed": true,
+      "seconds": 24.11420139996335
+    },
+    {
+      "case": "test_A2_wait_budget_then_same_key_retry (__main__.Recovery.test_A2_wait_budget_then_same_key_retry)",
+      "passed": true,
+      "seconds": 3.594013199908659
+    },
+    {
+      "case": "test_A2_waiters_release_request_workers (__main__.Recovery.test_A2_waiters_release_request_workers)",
+      "passed": true,
+      "seconds": 2.823094999883324
+    },
+    {
+      "case": "test_A3_concurrent_key_misuse (__main__.Recovery.test_A3_concurrent_key_misuse)",
+      "passed": true,
+      "seconds": 1.8793611000292003
+    },
+    {
+      "case": "test_A3_key_misuse (__main__.Recovery.test_A3_key_misuse)",
+      "passed": true,
+      "seconds": 1.4168526001740247
+    },
+    {
+      "case": "test_A4_outcomes_and_single_learner_rollback (__main__.Recovery.test_A4_outcomes_and_single_learner_rollback)",
+      "passed": true,
+      "seconds": 1.2675664001144469
+    },
+    {
+      "case": "test_A4_whole_operation_rollback (__main__.Recovery.test_A4_whole_operation_rollback)",
+      "passed": true,
+      "seconds": 1.4022405000869185
+    },
+    {
+      "case": "test_A5_dates_sorting_and_query_parity (__main__.Recovery.test_A5_dates_sorting_and_query_parity)",
+      "passed": true,
+      "seconds": 1.3122615001630038
+    },
+    {
+      "case": "test_A6_large_export (__main__.Recovery.test_A6_large_export)",
+      "passed": true,
+      "seconds": 5.03262299997732
+    },
+    {
+      "case": "test_A7_audit_failure_rolls_back_status (__main__.Recovery.test_A7_audit_failure_rolls_back_status)",
+      "passed": true,
+      "seconds": 1.3269464001059532
+    },
+    {
+      "case": "test_A7_revoke_retry_and_concurrency (__main__.Recovery.test_A7_revoke_retry_and_concurrency)",
+      "passed": true,
+      "seconds": 1.8361970998812467
+    }
+  ],
+  "metrics": {
+    "A6": {
+      "east_rows": 100000,
+      "matching_rows": 33299,
+      "generation_seconds": 1.0647410000674427,
+      "first_export_seconds": 0.24432469997555017,
+      "second_export_seconds": 0.11976029979996383,
+      "full_export_seconds": 0.5214086000341922,
+      "concurrent_list_seconds": 0.055075000040233135,
+      "overlap_seconds": 0.04681540001183748
+    }
+  }
+}

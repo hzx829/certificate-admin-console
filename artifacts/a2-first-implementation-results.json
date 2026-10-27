@@ -1,0 +1,102 @@
+{
+  "phase": "post-delivery A2 improvement",
+  "started_at": "2026-10-27T13:19:35.073312+00:00",
+  "finished_at": "2026-10-27T13:20:31.437517+00:00",
+  "passed": false,
+  "cases": [
+    {
+      "case": "test_A1_tenant_isolation (__main__.Recovery.test_A1_tenant_isolation)",
+      "passed": true,
+      "seconds": 1.5347603000700474
+    },
+    {
+      "case": "test_A2_completed_replay_without_writer_lock (__main__.Recovery.test_A2_completed_replay_without_writer_lock)",
+      "passed": true,
+      "seconds": 1.4714891000185162
+    },
+    {
+      "case": "test_A2_concurrent_replay (__main__.Recovery.test_A2_concurrent_replay)",
+      "passed": true,
+      "seconds": 1.9211532000917941
+    },
+    {
+      "case": "test_A2_different_keys_same_course (__main__.Recovery.test_A2_different_keys_same_course)",
+      "passed": true,
+      "seconds": 2.326399700017646
+    },
+    {
+      "case": "test_A2_sequential_replay_and_restart (__main__.Recovery.test_A2_sequential_replay_and_restart)",
+      "passed": true,
+      "seconds": 2.78181039984338
+    },
+    {
+      "case": "test_A2_uncommitted_twenty_seconds_two_processes (__main__.Recovery.test_A2_uncommitted_twenty_seconds_two_processes)",
+      "passed": false,
+      "seconds": 24.16717330017127,
+      "failure": "Traceback (most recent call last):\n  File \"D:\\certificate-admin-console\\tests\\a2_recovery.py\", line 59, in test_A2_uncommitted_twenty_seconds_two_processes\n    self.assertEqual([r.status_code for r in responses], [200]*6)\nAssertionError: Lists differ: [200, 200, 200, 503, 200, 200] != [200, 200, 200, 200, 200, 200]\n\nFirst differing element 3:\n503\n200\n\n- [200, 200, 200, 503, 200, 200]\n?                 -----\n\n+ [200, 200, 200, 200, 200, 200]\n?                      +++++\n\n"
+    },
+    {
+      "case": "test_A2_wait_budget_then_same_key_retry (__main__.Recovery.test_A2_wait_budget_then_same_key_retry)",
+      "passed": true,
+      "seconds": 3.7051361000631005
+    },
+    {
+      "case": "test_A2_waiters_release_request_workers (__main__.Recovery.test_A2_waiters_release_request_workers)",
+      "passed": false,
+      "seconds": 2.6723274998366833,
+      "failure": "Traceback (most recent call last):\n  File \"D:\\certificate-admin-console\\tests\\a2_recovery.py\", line 105, in test_A2_waiters_release_request_workers\n    self.assertTrue(all(r.status_code == 200 for r in responses))\nAssertionError: False is not true\n"
+    },
+    {
+      "case": "test_A3_concurrent_key_misuse (__main__.Recovery.test_A3_concurrent_key_misuse)",
+      "passed": true,
+      "seconds": 1.9496763001661748
+    },
+    {
+      "case": "test_A3_key_misuse (__main__.Recovery.test_A3_key_misuse)",
+      "passed": true,
+      "seconds": 1.456197699997574
+    },
+    {
+      "case": "test_A4_outcomes_and_single_learner_rollback (__main__.Recovery.test_A4_outcomes_and_single_learner_rollback)",
+      "passed": true,
+      "seconds": 1.309226700104773
+    },
+    {
+      "case": "test_A4_whole_operation_rollback (__main__.Recovery.test_A4_whole_operation_rollback)",
+      "passed": true,
+      "seconds": 1.392685400089249
+    },
+    {
+      "case": "test_A5_dates_sorting_and_query_parity (__main__.Recovery.test_A5_dates_sorting_and_query_parity)",
+      "passed": true,
+      "seconds": 1.3430798999033868
+    },
+    {
+      "case": "test_A6_large_export (__main__.Recovery.test_A6_large_export)",
+      "passed": true,
+      "seconds": 4.990456399973482
+    },
+    {
+      "case": "test_A7_audit_failure_rolls_back_status (__main__.Recovery.test_A7_audit_failure_rolls_back_status)",
+      "passed": true,
+      "seconds": 1.3899394001346081
+    },
+    {
+      "case": "test_A7_revoke_retry_and_concurrency (__main__.Recovery.test_A7_revoke_retry_and_concurrency)",
+      "passed": true,
+      "seconds": 1.9506481001153588
+    }
+  ],
+  "metrics": {
+    "A6": {
+      "east_rows": 100000,
+      "matching_rows": 33299,
+      "generation_seconds": 1.0676185998599976,
+      "first_export_seconds": 0.2654808000661433,
+      "second_export_seconds": 0.12500929995439947,
+      "full_export_seconds": 0.5320031000301242,
+      "concurrent_list_seconds": 0.05350230005569756,
+      "overlap_seconds": 0.05041459994390607
+    }
+  }
+}

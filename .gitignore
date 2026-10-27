@@ -14,5 +14,7 @@ artifacts/*.bundle
 artifacts/submission.json
 artifacts/export-finalizer.log
 artifacts/export-finalizer-error.log
+artifacts/demo-server*.log
+artifacts/a2-submission.json
 *.tmp
 .env

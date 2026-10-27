@@ -52,7 +52,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     python = prepare(build=args.command != "seed-large")
     if args.command == "verify":
-        run([python, "-m", "tests.acceptance"])
+        run([python, "-m", "tests.a2_recovery"])
+        run([shutil.which("node"), "--test", ROOT / "frontend" / "src" / "pending.test.mjs"])
     elif args.command == "seed-large":
         if args.database is None:
             parser.error("seed-large requires --database with a new file path")

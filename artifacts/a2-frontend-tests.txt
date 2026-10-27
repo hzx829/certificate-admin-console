@@ -1,0 +1,13 @@
+✔ persist the original key and payload across reloads (0.8581ms)
+✔ actor switch keeps separate pending operations (0.1459ms)
+✔ clear only the confirmed operation (0.0846ms)
+✔ storage failures are surfaced, never silently replaced with a new operation (0.1616ms)
+✔ malformed saved requests are rejected and retained for diagnosis (0.5999ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 69.7775
