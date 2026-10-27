@@ -12,6 +12,7 @@ import threading
 import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -54,7 +55,12 @@ class Server:
     def close(self):
         self.client.close()
         if self.process.poll() is None:
-            self.process.terminate()
+            if os.name == "nt":
+                subprocess.run(["taskkill", "/PID", str(self.process.pid), "/T", "/F"],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False,
+                               creationflags=subprocess.CREATE_NO_WINDOW)
+            else:
+                self.process.terminate()
             self.process.wait(timeout=10)
         self.log.close()
 
@@ -84,12 +90,13 @@ class Acceptance(unittest.TestCase):
         self.temp.cleanup()
 
     def rows(self, sql, params=()):
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db:
             return db.execute(sql, params).fetchall()
 
     def execute(self, sql):
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db:
             db.executescript(sql)
+            db.commit()
 
     def counts(self):
         return tuple(self.rows(f"SELECT COUNT(*) FROM {table}")[0][0] for table in ("certificates", "audits", "operations"))
@@ -247,7 +254,7 @@ class Acceptance(unittest.TestCase):
         self.path = large
         self.server = Server(self.path)
         self.assertEqual(self.rows("SELECT COUNT(*) FROM certificates WHERE tenant_id=1"), [(100000,)])
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db:
             db.row_factory = sqlite3.Row
             raw = [dict(r) for r in db.execute("SELECT x.id,l.name AS learner_name,c.title AS course_title,x.serial_number,x.issued_local_date AS issue_date FROM certificates x JOIN learners l ON l.id=x.learner_id JOIN courses c ON c.id=x.course_id WHERE x.tenant_id=1")]
         fields = ["learner_name", "course_title", "serial_number", "issue_date"]
