@@ -111,6 +111,6 @@ GitHub 私有仓库：[hzx829/certificate-admin-console](https://github.com/hzx8
 
 统一交付包为 `artifacts/certificate-admin-console-main.bundle`，完整 SHA、包哈希及证据截止时间见配套 `artifacts/main-submission.json`。导出脚本 `scripts/export_ai.py --finalize` 会等待当前回合结束、补录最终回复、提交证据并重新生成此包；不覆盖原版或 A2 分支归档。使用方法见 [提交说明](SUBMISSION.md)。
 
-提交仍待候选人独立完成 `written-answers.md`、本人确认第 6 部分未使用 AI，并向评估方提供上述仓库的访问权限。当前 main 含原定 2026-10-27 16:57–19:57 窗口结束后的改进，完整时间线保留在证据和提交说明中。
+候选人已提供 `written-answers.md`，按原文件逐字节复制并提交，AI 未读取或评审其内容。本人确认第 6 部分未使用 AI、向评估方提供私有仓库访问权限仍由候选人完成。当前 main 含原定 2026-10-27 16:57–19:57 窗口结束后的改进，完整时间线保留在证据和提交说明中。
 
 已知范围限制：只在 Windows、Chrome 实测；批量发证超过 60 秒等待预算可返回 503，需原 key 重试；sessionStorage 不保证关闭标签页后恢复；单次超大课程的批量结果渲染未单独优化；CSV 中断后需要重新下载，没有断点续传。不包含题目排除的生产认证、部署或通知。环境差异仍须用提供的脚本验收。

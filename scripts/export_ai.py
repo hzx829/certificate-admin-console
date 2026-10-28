@@ -132,7 +132,11 @@ def package_main(push=False):
         "original_delivery_commit":"45b2c1657803d9b0f887ffa94395c1a22cfd1603",
         "phase":"Improved main, including user-authorized changes after the timed delivery",
         "repository_url":git("remote", "get-url", "origin").removesuffix(".git"),
-        "pending_submission_items":["Candidate-only written answers and personal no-AI confirmation", "Reviewer read access to the private repository"]}
+        "pending_submission_items":["Candidate's personal no-AI confirmation", "Reviewer read access to the private repository"]}
+    answers = ROOT / "written-answers.md"
+    if answers.is_file():
+        submission["written_answers"] = {"file":"written-answers.md",
+            "sha256":hashlib.sha256(answers.read_bytes()).hexdigest(), "ai_content_review":False}
     if push:
         print(git("push", "--set-upstream", "origin", "main"), flush=True)
         remote_sha = git("ls-remote", "origin", "refs/heads/main").split()[0]

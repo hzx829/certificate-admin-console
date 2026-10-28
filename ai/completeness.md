@@ -1,8 +1,9 @@
 # Interaction evidence completeness
 
 One interactive AI session was used by this implementation:
-`01a17c12-d4f6-7402-80e1-cc2e3463834f`, Codex desktop, model `gpt-6-astra` as recorded
-by the native session. No subagent or inline autocomplete was used by the agent.
+`01a17c12-d4f6-7402-80e1-cc2e3463834f`, Codex desktop. The native session records
+`gpt-6-astra` for the build and `gpt-6.1-sol` for the final submission check;
+the index lists both. No subagent or inline autocomplete was used by the agent.
 Any additional tools used separately by the candidate must be disclosed by the
 candidate; this statement covers the recorded work in this repository.
 
@@ -63,6 +64,13 @@ field is the last exported native timestamp; after finalization it includes this
 delivery turn's completion. Evidence-only finalizer commits cannot include their
 own SHA in the content being hashed; related_commits links the prior work commits.
 
+The candidate's written answers are included in the final frozen submission.
+The preceding GitHub-delivery finalizer completed successfully, including that
+turn's final reply. The final freeze additionally exports the subsequent
+documentation and file-transfer work through the manifest timestamp. Read-only
+push verification and the final SHA receipt after that cutoff do not trigger
+another automatic commit; they do not change build or documentation content.
+
 Timing: user selected an implementation window of 2026-10-27 16:57–19:57
 Asia/Shanghai after an interruption. Earlier preparation begins at 14:36 in the
 same native log and remains included. No claim is made that restarting this local
@@ -70,7 +78,9 @@ clock independently establishes compliance with the assessment's one-sitting rul
 Later review, A2 fixes and main packaging occurred after that window; their timestamps
 are preserved. See SUBMISSION.md for the selected version and submission boundaries.
 
-Section 6 is **not completed or verified by AI**. No written-answers.md was created,
-read or modified. The candidate must complete it independently and personally
-confirm the required no-AI declaration. This declaration does not assert that
-they have already done so.
+Section 6 is **not completed or verified by AI**. On 2026-10-28 the candidate
+provided written-answers.md in the original local directory. It was copied
+byte-for-byte into the publication directory and its SHA-256 checked, without
+viewing or changing its contents. AI did not draft, translate, proofread or review
+the answers. The candidate must personally confirm the required no-AI declaration;
+file presence alone does not verify that declaration.
