@@ -1,6 +1,6 @@
 # 提交说明
 
-当前选定交付为 **main 改进版**，已将 `codex/a2-recovery` 快进合并到 main；保留完整提交历史，没有 squash 或改写原记录。应用实现基准是 `50370a5dee01886a6ba09a8d771ecba5ff830ed7`，后续 main 提交用于证据、文档及打包。
+当前选定交付为 **main 改进版**，包含 A2 改进及完整逐次提交历史，没有 squash 或丢弃提交。发布副本的应用实现基准是 `ec51c9c25a52bdcb5180619a4db00b21dcd4fa54`（原本地 SHA 为 `50370a5dee01886a6ba09a8d771ecba5ff830ed7`）。后续提交用于证据、文档及打包；发布前的历史脱敏及 SHA 变化见下节。
 
 ## 交付入口
 
@@ -14,7 +14,15 @@
 | AI 原生交互 | [ai/sessions/](ai/sessions/)、[索引](ai/session-index.csv)、[导出清单](ai/export-manifest.json) |
 | 决策、纠错及完整性声明 | [决策日志](ai/decision-log.md)、[完整性声明](ai/completeness.md) |
 
-`ai/sessions/` 已纳入 Git 提交，包含在上述历史包中。当前未配置远程仓库，尚未推送到 GitHub 或其他远程服务。提供远程 URL 时须包含 main 的完整历史及已跟踪的 ai 文件，不能只上传源代码快照。
+GitHub 私有仓库：[hzx829/certificate-admin-console](https://github.com/hzx829/certificate-admin-console)，交付分支为 `main`。`ai/sessions/` 和完整提交历史一起推送；评估方需要该私有仓库的读取权限。
+
+## 发布前的历史脱敏
+
+2026-10-28 推送前检查发现：早期原生导出的内部上下文压缩副本漏掉平台内容脱敏。最新版已经修正，但仅修改最新文件不能清理 Git 中的旧副本。因此在独立发布目录 `D:\certificate-admin-console-github` 重建对应历史，原目录 `D:\certificate-admin-console` 及历史离线包保持不动，作为本机原始归档，不直接对外提交。
+
+全部 19 个已有提交均保留，作者、提交者、时间、消息及父子关系不变；只修改 `ai/sessions/` 中合成的内部上下文记录、对应导出哈希和索引引用。原始按时间排列的用户消息、可见回复、命令、工具动作、失败和纠错不改写。业务代码在每个对应提交中完全一致。10 个提交因内容或父 SHA 变化而获得新的 SHA，见 [完整映射](ai/history-redaction-map.csv) 与 [核验报告](artifacts/history-redaction-verification.json)。
+
+历史文档、测试报告和原生工具输出中的旧 SHA 是当时真实记录，可通过映射查到发布副本中的对应提交。之后的工作和推送使用发布目录，避免误推旧导出。
 
 bundle 和配套 JSON 是包外生成物，不参与 Git 自身提交，避免把最终提交 SHA 写回同一个提交造成循环。交付离线包时同时提供这两个文件；远程交付时提供可访问 URL、main 分支和最终完整 SHA。
 
@@ -46,7 +54,7 @@ cd certificate-admin-console
 .\.venv\Scripts\python.exe scripts/export_ai.py --source "C:\path\to\native-session.jsonl" --finalize
 ```
 
-`C:\path\to\native-session.jsonl` 是占位路径，须替换为本会话原生记录。finalize 会等待发起该动作的回合结束，只提交 AI 证据文件，然后重新生成 main 包与配套元数据。正式交付以最后一次成功打包的 SHA 为准，不用实现基准 SHA 代替交付 SHA。
+`C:\path\to\native-session.jsonl` 是占位路径，须替换为本会话原生记录。finalize 会等待发起该动作的回合结束，只提交 AI 证据文件，然后重新生成 main 包与配套元数据。在已配置且已授权的 GitHub 发布目录中加 `--push`，会推送 `origin main` 并核对远端 SHA；不加此参数只处理本地包。正式交付以最后一次成功打包的 SHA 为准，不用实现基准 SHA 代替交付 SHA。
 
 ## 时间线与保留的原版
 
@@ -62,6 +70,6 @@ cd certificate-admin-console
 
 1. 独立完成第 6 部分并保存 `written-answers.md`；AI 不起草、翻译、润色或评审其内容。
 2. 本人确认第 6 部分未使用 AI，并补充本人可能在其他工具中产生的交互或行内补全使用情况。
-3. 提供评估方可访问的远程仓库 URL；补充材料提交后重新冻结最终 SHA 和打包。
+3. 向评估方提供上述私有仓库的读取权限；补充材料提交后重新冻结最终 SHA 和打包。
 
 当前改进版的已知边界已在 README 披露，包括 60 秒等待预算、同标签页 sessionStorage 恢复范围，以及 Windows/Chrome 实测范围。

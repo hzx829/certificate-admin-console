@@ -1,0 +1,18 @@
+{
+  "verified_at": "2026-10-28T02:50:48.990597+00:00",
+  "original_commits": 19,
+  "preserved_commits": 19,
+  "changed_commit_shas": 10,
+  "authors_committers_dates_messages_and_parent_graph": "preserved",
+  "non_evidence_files_at_every_paired_commit": "byte-identical",
+  "visible_chronological_interactions_at_every_paired_commit": "unchanged",
+  "changed_paths": [
+    "ai/export-manifest.json",
+    "ai/session-index.csv",
+    "ai/sessions/01a17c12-d4f6-7402-80e1-cc2e3463834f.jsonl"
+  ],
+  "historical_evidence_versions_checked": 9,
+  "unredacted_private_record_count": 0,
+  "recognized_github_token_or_private_key_matches": 0,
+  "original_repository_modified": false
+}

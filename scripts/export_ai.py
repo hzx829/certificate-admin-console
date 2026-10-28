@@ -103,7 +103,7 @@ def export(source, records, raw):
     print(f"Exported {len(records)} native records through {manifest['exported_through']}",flush=True)
 
 
-def package_main():
+def package_main(push=False):
     if git("branch", "--show-current") != "main":
         raise SystemExit("Package the selected main branch, not a development branch.")
     if git("status", "--porcelain"):
@@ -131,7 +131,15 @@ def package_main():
         "bundle_verified":True, "working_tree":"",
         "original_delivery_commit":"45b2c1657803d9b0f887ffa94395c1a22cfd1603",
         "phase":"Improved main, including user-authorized changes after the timed delivery",
-        "pending_submission_items":["Candidate-only written answers and personal no-AI confirmation", "Accessible remote repository URL"]}
+        "repository_url":git("remote", "get-url", "origin").removesuffix(".git"),
+        "pending_submission_items":["Candidate-only written answers and personal no-AI confirmation", "Reviewer read access to the private repository"]}
+    if push:
+        print(git("push", "--set-upstream", "origin", "main"), flush=True)
+        remote_sha = git("ls-remote", "origin", "refs/heads/main").split()[0]
+        if remote_sha != sha:
+            raise SystemExit("Remote main does not match the packaged commit.")
+        submission["pushed_commit"] = remote_sha
+        submission["remote_verified"] = True
     (ROOT / "artifacts" / "main-submission.json").write_text(json.dumps(submission,indent=2),encoding="utf-8")
     print(json.dumps(submission),flush=True)
 
@@ -141,14 +149,17 @@ if __name__ == "__main__":
     parser.add_argument("--source", type=Path)
     parser.add_argument("--finalize", action="store_true")
     parser.add_argument("--package-only", action="store_true")
+    parser.add_argument("--push", action="store_true", help="Explicitly push origin main after packaging and verify its SHA")
     args = parser.parse_args()
     if args.package_only:
         if args.source or args.finalize:
             parser.error("--package-only cannot be combined with --source or --finalize")
-        package_main()
+        package_main(push=args.push)
         raise SystemExit(0)
     if args.source is None:
         parser.error("--source is required for native evidence export")
+    if args.push and not args.finalize:
+        parser.error("--push requires --finalize or --package-only")
     records, raw = read_records(args.source)
     if args.finalize:
         started = [r["payload"] for r in records if r["type"] == "event_msg" and r["payload"].get("type") == "task_started"]
@@ -168,4 +179,4 @@ if __name__ == "__main__":
         git("add", *paths)
         if git("diff", "--cached", "--name-only", "--", *paths):
             print(git("commit", "-m", "docs: finalize main submission interaction evidence", "--", *paths),flush=True)
-        package_main()
+        package_main(push=args.push)

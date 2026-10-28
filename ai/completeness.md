@@ -25,10 +25,19 @@ authorization for automated and browser testing.
 
 The selected delivery branch is now main, including the separately authorized A2
 improvement and subsequent documentation. ai/sessions and the companion index,
-manifest and decision log are tracked and committed in Git. No remote is
-configured, so local commits and offline bundles do not imply a remote upload.
+manifest and decision log are tracked and committed in Git. The publication
+remote is https://github.com/hzx829/certificate-admin-console, a private repository.
 The current package is certificate-admin-console-main.bundle with main-submission.json;
 original and A2-branch bundles remain historical snapshots.
+
+Before the first GitHub push, an audit found unredacted platform content in the
+synthetic context-compaction payloads of older exports. The publication copy
+redacts those payloads throughout history, updates corresponding hashes and index
+references, and retains all 19 pre-publication commits, their author/committer
+metadata, messages and graph. Every non-evidence file is unchanged at each paired
+commit. Original chronological visible interactions remain intact. See
+history-redaction-map.csv and ../artifacts/history-redaction-verification.json.
+Original local archives remain offline; subsequent work uses the publication copy.
 
 Declared export limitations and redactions:
 
